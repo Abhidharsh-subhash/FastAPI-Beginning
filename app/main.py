@@ -2,14 +2,14 @@ from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 # it is used to define schemas of the data that the user have to send to the server
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from random import randrange
 # module to use fastapi with postgres
 import psycopg2
 # it is used to access the column name while retreiving the data from the database
 from psycopg2.extras import RealDictCursor
 import time
-from .import models
+from .import models, schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -17,18 +17,6 @@ from sqlalchemy.orm import Session
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-# schema defenition while creating a post
-
-
-class Post(BaseModel):
-    title: str
-    content: str
-    # when the value is not given then True will be the default value
-    published: bool = True
-    # if not data is provided for the field rating then it will be none
-    # rating: Optional[int] = None
 
 
 # we are using this while loop because once the connection failed try to connect again before executing the remaining codes.
@@ -57,32 +45,17 @@ def read_root():
     return {"Hello": "Worlds"}
 
 
-@app.get('/sqlalchemy')
-def test_posts(db: Session = Depends(get_db)):
-    # the query object is performing sql
-    data = db.query(models.Post).all()
-    print(data)
-    return {'data': data}
-
-
-@app.get('/posts')
+@app.get('/posts', response_model=List[schemas.Post])
 def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""select * from posts""")
     # posts = cursor.fetchall()
+    # the query object is performing the sql
     posts = db.query(models.Post).all()
-    print(posts)
-    return {'data': posts}
+    # FastAPI uses the jsonable_encoder function internally to serialize Python objects into JSON.
+    return posts
 
 
-def find_post(id):
-    for i in range(len(my_posts)):
-        x = my_posts[i]
-        if x['id'] == id:
-            return x
-    return None
-
-
-@app.get('/posts/{id}')
+@app.get('/posts/{id}', response_model=schemas.Post)
 def get_post(id: int, db: Session = Depends(get_db)):
     # x = find_post(id)
     # if x is None:
@@ -97,13 +70,13 @@ def get_post(id: int, db: Session = Depends(get_db)):
     # post = cursor.fetchone()
     post = db.query(models.Post).filter_by(id=id).first()
     db.query(models.Post).filter
-    return {'data': post}
+    return post
 
 
-@app.post('/posts', status_code=status.HTTP_201_CREATED)
+@app.post('/posts', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 # the parameter will convert the body into dict format and assign it to the variable payload
 # def create_post(payload:dict = Body(...)):
-def create_post(new_post: Post, db: Session = Depends(get_db)):
+def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db)):
     # here the new_post is a pydantic model
     # print(new_post)
     # pydantic model has a default method to convert the coming data into json format
@@ -128,7 +101,7 @@ def create_post(new_post: Post, db: Session = Depends(get_db)):
     db.commit()
     # after commit the post will be a null value to restore the value to the variable post we use refresh
     db.refresh(post)
-    return {'data': post}
+    return post
 
 
 @app.delete('/posts/{id}')
@@ -155,8 +128,8 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     #     )
 
 
-@app.put('/posts/{id}')
-def update_post(id: int, new_post: Post, db: Session = Depends(get_db)):
+@app.put('/posts/{id}', response_model=schemas.Post)
+def update_post(id: int, new_post: schemas.PostCreate, db: Session = Depends(get_db)):
     # x = find_post(id)
     # if x is None:
     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -182,4 +155,4 @@ def update_post(id: int, new_post: Post, db: Session = Depends(get_db)):
     else:
         post_query.update(new_post.model_dump(), synchronize_session=False)
         db.commit()
-        return {'msg': post_query.first()}
+        return post_query.first()
