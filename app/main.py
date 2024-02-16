@@ -9,9 +9,14 @@ import psycopg2
 # it is used to access the column name while retreiving the data from the database
 from psycopg2.extras import RealDictCursor
 import time
-from .import models, schemas
+from .import models, schemas, utils
 from .database import engine, get_db
+# session is the place where SQLAlchemy keeps track of the data it's working with.
 from sqlalchemy.orm import Session
+# to resolve the error if the printing is true then the issue is resolved
+# import bcrypt
+# print(hasattr(bcrypt, '__about__'))
+
 
 # this is going to create all of our models in the database as tables
 models.Base.metadata.create_all(bind=engine)
@@ -114,6 +119,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'post with id {id} is not found')
     else:
+        # synchronize_session=False means t's like saying, "No, don't update the list on the screen automatically. I'll refresh it myself later if I need to.
         post.delete(synchronize_session=False)
         db.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -156,3 +162,20 @@ def update_post(id: int, new_post: schemas.PostCreate, db: Session = Depends(get
         post_query.update(new_post.model_dump(), synchronize_session=False)
         db.commit()
         return post_query.first()
+
+
+@app.post('/users', status_code=status.HTTP_201_CREATED, response_model=schemas.User)
+def create_user(new_user: schemas.UserBase, db: Session = Depends(get_db)):
+    hashed_password = utils.hash_password(new_user.password)
+    new_user.password = hashed_password
+    user = models.User(**new_user.model_dump())
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.get('/users/{id}', response_model=schemas.User)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter_by(id=id).first()
+    return user

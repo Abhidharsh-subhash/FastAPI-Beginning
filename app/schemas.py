@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, EmailStr
 
 # schema defenition while creating a post that is the format of the data to be send to the served side.
 # the schema/pydantic model defines the structure of a request and response
@@ -24,4 +24,18 @@ class Post(PostBase):
 
     class Config:
         # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
-        orm_mode = True
+        from_attributes = True
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class User(BaseModel):
+    id: int
+    email: EmailStr
+
+    class Config:
+        # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
+        from_attributes = True
