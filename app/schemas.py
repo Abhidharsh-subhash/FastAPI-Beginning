@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, ValidationError, EmailStr
 
 # schema defenition while creating a post that is the format of the data to be send to the served side.
@@ -44,3 +45,16 @@ class User(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+    class Config:
+        # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
+        from_attributes = True
+
+
+class Tokendata(BaseModel):
+    id: Optional[int] = None

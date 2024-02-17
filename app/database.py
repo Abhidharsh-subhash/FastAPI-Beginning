@@ -17,10 +17,12 @@ Base = declarative_base()
 # we ge a session to our database and everytime we got a request we get a session and after the request is done then close it out.
 # we can keep calling this function everytime we get a request to any of our API endpoint.
 
+# Dependency function to create a database session
+
 
 def get_db():
-    db = SessionLocal()
+    db = SessionLocal()  # Create a database session using SessionLocal
     try:
-        yield db
+        yield db  # Yield the session to the endpoint function
     finally:
-        db.close()
+        db.close()  # Close the session after the request is processed

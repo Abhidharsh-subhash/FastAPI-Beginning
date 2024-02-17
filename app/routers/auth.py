@@ -7,7 +7,7 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 router = APIRouter(tags=['authentication'])
 
 
-@router.post('/login')
+@router.post('/login', response_model=schemas.Token)
 def login(data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     # now here the data will only have two values that is username(email) and password
     user = db.query(models.User).filter_by(email=data.username).first()
@@ -19,4 +19,4 @@ def login(data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
             status_code=status.HTTP_404_NOT_FOUND, detail="Invalid credentials")
     else:
         access_token = oauth2.create_access_token(data={'user_id': user.id})
-        return {"msg": "successfully logged in", "access_token": access_token, "token_type": "bearer"}
+        return {"access_token": access_token, "token_type": "Bearer"}
