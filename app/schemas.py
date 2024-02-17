@@ -39,3 +39,8 @@ class User(BaseModel):
     class Config:
         # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
         from_attributes = True
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str

@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 # to resolve the error if the printing is true then the issue is resolved
 # import bcrypt
 # print(hasattr(bcrypt, '__about__'))
-from .routers import post, user
+from .routers import post, user, auth
 
 
 # this is going to create all of our models in the database as tables
@@ -54,3 +54,4 @@ def read_root():
 # this will import all the routes inside the post and user file inside the folder routers
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
