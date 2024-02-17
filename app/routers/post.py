@@ -9,7 +9,7 @@ router = APIRouter(prefix='/posts', tags=['Posts'])
 
 @router.get('/', response_model=List[schemas.Post])
 def get_posts(db: Session = Depends(get_db),
-              user_id: int = Depends(oauth2.get_current_user)):
+              current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""select * from posts""")
     # posts = cursor.fetchall()
     # the query object is performing the sql
@@ -18,29 +18,32 @@ def get_posts(db: Session = Depends(get_db),
     return posts
 
 
-@router.get('/{id}', response_model=schemas.Post)
-def get_post(id: int, db: Session = Depends(get_db)):
-    # x = find_post(id)
-    # if x is None:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-    #                         detail=f'Post with id:{id} not found')
-    #     # response.status_code = status.HTTP_404_NOT_FOUND
-    #     # return {'msg':f'Post with id:{id} not found'}
-    # else:
-    #     response.status_code = status.HTTP_200_OK
-    #     return {'data': x}
-    # cursor.execute("""select * from posts where id=%s""", (str(id)),)
-    # post = cursor.fetchone()
-    post = db.query(models.Post).filter_by(id=id).first()
-    db.query(models.Post).filter
-    return post
+# @router.get('/{id}', response_model=schemas.Post)
+# def get_post(id: int, db: Session = Depends(get_db)):
+#     # x = find_post(id)
+#     # if x is None:
+#     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#     #                         detail=f'Post with id:{id} not found')
+#     #     # response.status_code = status.HTTP_404_NOT_FOUND
+#     #     # return {'msg':f'Post with id:{id} not found'}
+#     # else:
+#     #     response.status_code = status.HTTP_200_OK
+#     #     return {'data': x}
+#     # cursor.execute("""select * from posts where id=%s""", (str(id)),)
+#     # post = cursor.fetchone()
+#     post = db.query(models.Post).filter_by(id=id).first()
+#     return post
+@router.get('/user/', response_model=List[schemas.Post])
+def get_user_posts(db: Session = Depends(get_db),
+                   current_user: int = Depends(oauth2.get_current_user)):
+    user = db.query(models.Post).filter_by()
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 # the parameter will convert the body into dict format and assign it to the variable payload
 # def create_post(payload:dict = Body(...)):
 def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db),
-                user_id: int = Depends(oauth2.get_current_user)):
+                current_user: int = Depends(oauth2.get_current_user)):
     # here the new_post is a pydantic model
     # print(new_post)
     # pydantic model has a default method to convert the coming data into json format
@@ -60,7 +63,7 @@ def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db),
     # post = models.Post(title=new_post.title, content=new_post.content,
     #                    published=new_post.published)
     # it will unpack the new_post
-    print(user_id)
+    print(current_user)
     post = models.Post(**new_post.model_dump())
     db.add(post)
     db.commit()
@@ -73,7 +76,7 @@ def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db),
 # here the dependency is get_db
 @router.delete('/{id}')
 def delete_post(id: int, db: Session = Depends(get_db),
-                user_id: int = Depends(oauth2.get_current_user)):
+                current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""delete from posts where id=%s returning *""", (str(id)),)
     # post = cursor.fetchone()
     # conn.commit()
@@ -99,7 +102,7 @@ def delete_post(id: int, db: Session = Depends(get_db),
 
 @router.put('/{id}', response_model=schemas.Post)
 def update_post(id: int, new_post: schemas.PostCreate, db: Session = Depends(get_db),
-                user_id: int = Depends(oauth2.get_current_user)):
+                current_user: int = Depends(oauth2.get_current_user)):
     # x = find_post(id)
     # if x is None:
     #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
