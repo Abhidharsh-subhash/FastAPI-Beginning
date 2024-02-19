@@ -1,5 +1,6 @@
 from .. import models, schemas, oauth2
-from typing import List
+from typing import List, Optional
+# session is the place where SQLAlchemy keeps track of the data it's working with.
 from sqlalchemy.orm import Session
 from fastapi import Depends, status, HTTPException, Response, APIRouter
 from ..database import get_db
@@ -7,13 +8,16 @@ from ..database import get_db
 router = APIRouter(prefix='/posts', tags=['Posts'])
 
 
-@router.get('/', response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db),
-              current_user: int = Depends(oauth2.get_current_user)):
+@router.get('/', response_model=List[schemas.PostCreate])
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
+              limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""select * from posts""")
     # posts = cursor.fetchall()
     # the query object is performing the sql
-    posts = db.query(models.Post).all()
+    # contains is case sensitive but if we want incase sensitive the use ilike
+    print(search)
+    posts = db.query(models.Post).filter(
+        models.Post.title.contains(search)).limit(limit).offset(skip).all()
     # FastAPI uses the jsonable_encoder function internally to serialize Python objects into JSON.
     return posts
 
@@ -36,7 +40,23 @@ def get_posts(db: Session = Depends(get_db),
 @router.get('/user/', response_model=List[schemas.Post])
 def get_user_posts(db: Session = Depends(get_db),
                    current_user: int = Depends(oauth2.get_current_user)):
-    user = db.query(models.Post).filter_by()
+    posts = db.query(models.Post).filter_by(owner_id=current_user.id).all()
+    return posts
+
+
+@router.get('/{id}', response_model=schemas.Post)
+def get_post_by_id(id: int, db: Session = Depends(get_db),
+                   current_user: int = Depends(oauth2.get_current_user)):
+    post_query = db.query(models.Post).filter_by(id=id)
+    post = post_query.first()
+    if post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f'post with id {id} not found')
+    elif post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f'you cant access this post')
+    else:
+        return post
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -64,7 +84,7 @@ def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db),
     #                    published=new_post.published)
     # it will unpack the new_post
     print(current_user)
-    post = models.Post(**new_post.model_dump())
+    post = models.Post(owner_id=current_user.id, **new_post.model_dump())
     db.add(post)
     db.commit()
     # after commit the post will be a null value to restore the value to the variable post we use refresh
@@ -84,6 +104,9 @@ def delete_post(id: int, db: Session = Depends(get_db),
     if post.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'post with id {id} is not found')
+    elif post.first().owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f'You cant delete the post with id {id}')
     else:
         # synchronize_session=False means t's like saying, "No, don't update the list on the screen automatically. I'll refresh it myself later if I need to.
         post.delete(synchronize_session=False)
@@ -125,6 +148,9 @@ def update_post(id: int, new_post: schemas.PostCreate, db: Session = Depends(get
     if post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'post with id {id} is not found')
+    elif post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail=f'You cant delete the post with id {id}')
     else:
         post_query.update(new_post.model_dump(), synchronize_session=False)
         db.commit()
