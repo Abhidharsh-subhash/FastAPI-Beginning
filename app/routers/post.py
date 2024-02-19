@@ -4,20 +4,38 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import Depends, status, HTTPException, Response, APIRouter
 from ..database import get_db
+# this will give access to different functions
+from sqlalchemy import func
 
 router = APIRouter(prefix='/posts', tags=['Posts'])
 
 
-@router.get('/', response_model=List[schemas.PostCreate])
+# @router.get('/', response_model=List[schemas.Post])
+@router.get('/', response_model=List[schemas.PostOut])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""select * from posts""")
     # posts = cursor.fetchall()
     # the query object is performing the sql
     # contains is case sensitive but if we want incase sensitive the use ilike
-    print(search)
-    posts = db.query(models.Post).filter(
+    # posts = db.query(models.Post).filter(
+    #     models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # join is left join by default  and isouter=True will make it left outer join
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
         models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # to resolve ValueError: [TypeError('cannot convert dictionary update sequence element #0 to a sequence'),
+    # TypeError('vars() argument must have __dict__ attribute')]
+    # result = []
+    # # it is to convert the data into a list of dictionaries
+    # for post, vote_count in results:
+    #     post_dict = {
+    #         'id': post.id,
+    #         'title': post.title,
+    #         'content': post.content,
+    #         'votes': vote_count
+    #     }
+    #     result.append(post_dict)
     # FastAPI uses the jsonable_encoder function internally to serialize Python objects into JSON.
     return posts
 
@@ -37,24 +55,32 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 #     # post = cursor.fetchone()
 #     post = db.query(models.Post).filter_by(id=id).first()
 #     return post
-@router.get('/user/', response_model=List[schemas.Post])
+@router.get('/user/', response_model=List[schemas.PostOut])
 def get_user_posts(db: Session = Depends(get_db),
                    current_user: int = Depends(oauth2.get_current_user)):
+    post = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+        models.Post.owner_id == current_user.id).all()
     posts = db.query(models.Post).filter_by(owner_id=current_user.id).all()
-    return posts
+    return post
 
 
-@router.get('/{id}', response_model=schemas.Post)
+@router.get('/{id}', response_model=schemas.PostOut)
 def get_post_by_id(id: int, db: Session = Depends(get_db),
                    current_user: int = Depends(oauth2.get_current_user)):
+    post = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.id == id).first()
     post_query = db.query(models.Post).filter_by(id=id)
-    post = post_query.first()
-    if post == None:
+    # posts = posts.first()
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'post with id {id} not found')
-    elif post.owner_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f'you cant access this post')
+    # if post:
+    #     post_obj, vote_count = post  # Unpack the tuple
+    #     if post_obj.owner_id != current_user.id:
+    #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+    #                             detail=f'you cant access this post')
     else:
         return post
 

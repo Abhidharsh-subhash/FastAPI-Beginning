@@ -33,10 +33,6 @@ class PostBase(BaseModel):
     # if not data is provided for the field rating then it will be none
     # rating: Optional[int] = None
 
-
-class PostCreate(PostBase):
-    pass
-
 # schema definition for the response from the api
 
 
@@ -47,6 +43,19 @@ class Post(PostBase):
     class Config:
         # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
         from_attributes = True
+
+
+class PostOut(BaseModel):
+    Post: Post
+    votes: int
+
+    class Config:
+        # the orm_mode will tell the Pydanti model to read the data if it is not a dict.
+        from_attributes = True
+
+
+class PostCreate(PostBase):
+    pass
 
 
 class Token(BaseModel):

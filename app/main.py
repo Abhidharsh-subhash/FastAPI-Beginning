@@ -8,7 +8,8 @@ from .routers import post, user, auth, vote
 from .config import settings
 
 # this is going to create all of our models in the database as tables
-models.Base.metadata.create_all(bind=engine)
+# removing it as now alembic will handle all the interations with the database
+# models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 

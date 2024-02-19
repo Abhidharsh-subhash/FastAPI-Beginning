@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_hostname: str = 'localhost'
-    database_port: str = 'postgres'
+    database_hostname: str
+    database_port: int
     database_password: str
     database_name: str
     database_username: str
