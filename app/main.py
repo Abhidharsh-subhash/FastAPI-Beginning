@@ -6,17 +6,29 @@ from .database import engine
 # print(hasattr(bcrypt, '__about__'))
 from .routers import post, user, auth, vote
 from .config import settings
+from fastapi.middleware.cors import CORSMiddleware
 
 # this is going to create all of our models in the database as tables
 # removing it as now alembic will handle all the interations with the database
 # models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+# these are the list of domain from where the APIs can be accessed
+origins = ['*']
+app.add_middleware(
+    # middleware is a function that runs before every request
+    CORSMiddleware,
+    # what domains should be able to talk to our APIs
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-# @app.get("/")
-# def read_root():
-#     return {"Hello": "Worlds"}
+@app.get("/")
+def read_root():
+    return {"Hello": "Worlds"}
 
 
 # this will import all the routes inside the post and user file inside the folder routers
