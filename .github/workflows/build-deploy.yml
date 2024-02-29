@@ -22,5 +22,5 @@ jobs:
         #actual command that needs to run on our machine to pull our repo
         #pulling the code is a common task so the name will be available from the github marketplace by checking checkout
         uses: actions/checkout@v4
-      - name: saying hii to abhi
-        uses: echo "hii abhi"
+      # - name: saying hii to abhi
+      #   uses: echo "hii abhi"
