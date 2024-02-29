@@ -1,0 +1,26 @@
+#name of the workflow
+name: Build and Deploy Code
+#when should it trigger the pipeline
+on: [push, pull_request]
+#if you need to be more specific in the triggering then you can use like
+# on:
+#   push:
+#     branches:
+#       - "main"
+#       - "anotherbranch"
+#   pull_request:
+#     branches: 
+#       - "test_branch"
+#a set of steps that is executed on the same runner
+jobs:
+  job1:
+    #specify what type of machine what to run this on.
+    runs-on: ubuntu-latest
+    #list of steps to be executed on the machine
+    steps:
+      - name: pulling git repo
+        #actual command that needs to run on our machine to pull our repo
+        #pulling the code is a common task so the name will be available from the github marketplace by checking checkout
+        uses: actions/checkout@v4
+      - name: saying hii to abhi
+        uses: echo "hii abhi"

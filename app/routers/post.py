@@ -109,7 +109,6 @@ def create_post(new_post: schemas.PostCreate, db: Session = Depends(get_db),
     # post = models.Post(title=new_post.title, content=new_post.content,
     #                    published=new_post.published)
     # it will unpack the new_post
-    print(current_user)
     post = models.Post(owner_id=current_user.id, **new_post.model_dump())
     db.add(post)
     db.commit()

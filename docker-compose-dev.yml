@@ -1,0 +1,50 @@
+#version of the Docker Compose file
+version: '3'
+#it is just a container(if you have 4 containers then we will have 4 services)
+services:
+    #name of the first container
+    api:
+        #it will build the image and . means the current directory
+        build: .
+        #it tells the docker that postgres container should start before the api container starts.
+        depends_on:
+            - postgres
+        ports:
+              #if there is traffic on localhost forward it to port on container
+            # - <port on localhost>:<port on container>
+            - 8000:8000
+        volumes:
+            #current directory in our local machine(if we need only app folder then it will be ./app:):path folder of our docker container.
+            #ro means read only for the security
+            - ./:/usr/src/app:ro
+        #which will restart the application each time any changes detected
+        command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        # env_file:
+        #     - ./.env
+            #OR
+        environment:
+            - DATABASE_HOSTNAME=postgres
+            - DATABASE_PORT=5432
+            - DATABASE_PASSWORD=abhidharsh1999
+            - DATABASE_NAME=fastapi
+            - DATABASE_USERNAME=postgres
+            - SECRET_KEY=09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7
+            - ALGORITHM=HS256
+            - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    postgres:
+      #here we are using prebuilt default postgres image
+      image: postgres
+      environment:
+          - POSTGRES_PASSWORD=abhidharsh1999
+          - POSTGRES_DB=fastapi
+      #even when the container get deleted we need to presist the data so that we use volumes.
+      volumes:
+          #name for the volume: path in the container that postgres is going to write the data
+          - postgres-db:/var/lib/postgresql/data
+
+#anytime when we use named volume we have to create a volume section globally and just pass the name we created because
+#named volumes are designed so that multiple containers can access them once we defined them like this. 
+volumes:
+    postgres-db:
+    
+

@@ -28,7 +28,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Worlds"}
+    return {"message": "bind mount works"}
 
 
 # this will import all the routes inside the post and user file inside the folder routers

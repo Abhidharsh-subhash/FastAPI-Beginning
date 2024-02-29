@@ -1,0 +1,45 @@
+#version of the Docker Compose file
+version: '3'
+#it is just a container(if you have 4 containers then we will have 4 services)
+services:
+    #name of the first container
+    api:
+        #instead of creating an image it will pull the image from the docker hub.
+        image: abhidharsh1999/fastapi
+        #it tells the docker that postgres container should start before the api container starts.
+        depends_on:
+            - postgres
+        ports:
+              #if there is traffic on localhost forward it to port on container
+            # - <port on localhost>:<port on container>
+          - 80:8000
+        #which will restart the application each time any changes detected
+        # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+        # env_file:
+        #     - ./.env
+            #OR
+        environment:
+            #it is going to look on the linux machine for the environment varialble given
+            - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+            - DATABASE_PORT=${DATABASE_PORT}
+            - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+            - DATABASE_NAME=${DATABASE_NAME}
+            - DATABASE_USERNAME=${DATABASE_USERNAME}
+            - SECRET_KEY=${SECRET_KEY}
+            - ALGORITHM=${ALGORITHM}
+            - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+    postgres:
+      #here we are using prebuilt default postgres image
+      image: postgres
+      environment:
+          - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+          - POSTGRES_DB=${DATABASE_NAME}
+      #even when the container get deleted we need to presist the data so that we use volumes.
+      volumes:
+          #name for the volume: path in the container that postgres is going to write the data
+          - postgres-db:/var/lib/postgresql/data
+
+#anytime when we use named volume we have to create a volume section globally and just pass the name we created because
+#named volumes are designed so that multiple containers can access them once we defined them like this. 
+volumes:
+    postgres-db:
