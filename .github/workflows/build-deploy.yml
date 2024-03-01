@@ -13,9 +13,10 @@ on: [push, pull_request]
 #       - "test_branch"
 #a set of steps that is executed on the same runner
 jobs:
-  environment:
-    name: testing
   job1:
+    #specifying the environment to be used which is configured in the githug with its name
+    environment:
+      name: testing
     #initializing the environment variables which will be available only inside the job1
     #if needed it globally in the file then initalize it outside the jobs
     env:
