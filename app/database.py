@@ -10,8 +10,8 @@ from .config import settings
 
 # it is the database url format
 # SQLALCHEMY_DATABASE_URL = 'postgresql://<username>:<password>@<ip-address/hostname>/<database_name>'
-encoded_password = urllib.parse.quote_plus(settings.database_password)
-SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{encoded_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
+# encoded_password = urllib.parse.quote_plus(settings.database_password)
+SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}'
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 # it creates session objects,autocommit=False means You'll need to manually commit changes using the session's commit() method after each transaction
 # bind=engine means  specifies the database engine to which the session will be bound
