@@ -37,7 +37,6 @@ jobs:
           POSTGRES_DB: ${{secrets.DATABASE_NAME}}_test
         ports:
           - 5432:5432
-        run: echo "${{secrets.DATABASE_PASSWORD}}"
         #Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
