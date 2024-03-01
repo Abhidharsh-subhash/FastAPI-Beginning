@@ -14,11 +14,11 @@ import pytest
 from app.oauth2 import create_access_token
 from app import models
 
-encoded_password = urllib.parse.quote_plus('abhidharsh@1999')
-databasename = settings.database_name+'_test'
+# encoded_password = urllib.parse.quote_plus('abhidharsh@1999')
+# databasename = settings.database_name+'_test'
 # SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{encoded_password}@{
 #     settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
-SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{encoded_password}@{settings.database_hostname}:{settings.database_port}/{databasename}'
+SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
 # SQLALCHEMY_DATABASE_URL='postgresql://postgres:{encoded_password}@localhost:5432/fastapi_test'
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(
