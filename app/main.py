@@ -7,6 +7,7 @@ from .database import engine
 from .routers import post, user, auth, vote
 from .config import settings
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
 
 # this is going to create all of our models in the database as tables
 # removing it as now alembic will handle all the interations with the database
@@ -26,10 +27,14 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/sample")
 def read_root():
     return {"message": "bind mount works"}
 
+
+@app.get("/")
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(openapi_url="/openapi.json")
 
 # this will import all the routes inside the post and user file inside the folder routers
 app.include_router(post.router)
