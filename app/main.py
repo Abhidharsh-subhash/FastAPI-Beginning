@@ -34,7 +34,7 @@ def read_root():
 
 @app.get("/")
 async def custom_swagger_ui_html():
-    return get_swagger_ui_html(openapi_url="/openapi.json")
+    return get_swagger_ui_html(title="My API Documentation", openapi_url="/openapi.json")
 
 # this will import all the routes inside the post and user file inside the folder routers
 app.include_router(post.router)
